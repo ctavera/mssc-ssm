@@ -10,8 +10,6 @@ import org.springframework.statemachine.config.StateMachineFactory;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 class StateMachineConfigTest {
 
