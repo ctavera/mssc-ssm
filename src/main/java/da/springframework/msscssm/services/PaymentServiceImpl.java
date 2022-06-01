@@ -11,6 +11,8 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.support.DefaultStateMachineContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 @AllArgsConstructor
 @Service
@@ -28,34 +30,37 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.save(payment);
     }
 
+    @Transactional
     @Override
-    public StateMachine<PaymentService, PaymentEvent> preAuth(Long paymentId) {
+    public StateMachine<PaymentState, PaymentEvent> preAuth(Long paymentId) {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = build(paymentId);
 
-        sendEvent(paymentId, stateMachine, PaymentEvent.PRE_AUTHORIZE);
+        sendEvent(paymentId, stateMachine, PaymentEvent.PRE_AUTH_APPROVED);
 
-        return null;
+        return stateMachine;
     }
 
+    @Transactional
     @Override
-    public StateMachine<PaymentService, PaymentEvent> authorizePayment(Long paymentId) {
+    public StateMachine<PaymentState, PaymentEvent> authorizePayment(Long paymentId) {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = build(paymentId);
 
         sendEvent(paymentId, stateMachine, PaymentEvent.AUTH_APPROVED);
 
-        return null;
+        return stateMachine;
     }
 
+    @Transactional
     @Override
-    public StateMachine<PaymentService, PaymentEvent> declineAuth(Long paymentId) {
+    public StateMachine<PaymentState, PaymentEvent> declineAuth(Long paymentId) {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = build(paymentId);
 
         sendEvent(paymentId, stateMachine, PaymentEvent.AUTH_DECLINED);
 
-        return null;
+        return stateMachine;
     }
 
     private void sendEvent(Long paymentId, StateMachine<PaymentState, PaymentEvent> stateMachine, PaymentEvent paymentEvent){
@@ -63,10 +68,10 @@ public class PaymentServiceImpl implements PaymentService {
                 .setHeader(PAYMENT_ID_HEADER, paymentId)
                 .build();
 
-        stateMachine.sendEvent(message);
+        stateMachine.sendEvent(Mono.just(message)).subscribe();
     }
     private StateMachine<PaymentState, PaymentEvent> build (Long paymentId){
-        Payment payment = paymentRepository.getOne(paymentId);
+        Payment payment = paymentRepository.getReferenceById(paymentId);
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = stateMachineFactory.getStateMachine(Long.toString(payment.getId()));
 

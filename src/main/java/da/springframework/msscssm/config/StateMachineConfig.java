@@ -19,6 +19,7 @@ import java.util.EnumSet;
 @Configuration
 public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentState, PaymentEvent> {
 
+
     @Override
     public void configure(StateMachineStateConfigurer<PaymentState, PaymentEvent> states) throws Exception {
         states.withStates()
@@ -47,6 +48,8 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PaymentSta
             }
         };
 
-        config.withConfiguration().listener(listenerAdapter);
+        config.withConfiguration()
+                .autoStartup(true)
+                .listener(listenerAdapter);
     }
 }

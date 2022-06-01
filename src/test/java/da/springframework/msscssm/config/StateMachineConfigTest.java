@@ -5,8 +5,10 @@ import da.springframework.msscssm.domain.PaymentState;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -20,19 +22,19 @@ class StateMachineConfigTest {
     void testNewStateMachine() {
         StateMachine<PaymentState, PaymentEvent> stateMachine = stateMachineFactory.getStateMachine(UUID.randomUUID());
 
-        stateMachine.start();
+        stateMachine.startReactively();
 
         System.out.println(stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvent.PRE_AUTHORIZE);
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTHORIZE).build())).doOnComplete(() -> System.out.println("Event handling complete")).subscribe();
 
         System.out.println(stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvent.PRE_AUTH_APPROVED);
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTH_APPROVED).build())).doOnComplete(() -> System.out.println("Event handling complete")).subscribe();
 
         System.out.println(stateMachine.getState().toString());
 
-        stateMachine.sendEvent(PaymentEvent.PRE_AUTH_DECLINED);
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTH_DECLINED).build())).doOnComplete(() -> System.out.println("Event handling complete")).subscribe();
 
         System.out.println(stateMachine.getState().toString());
     }
