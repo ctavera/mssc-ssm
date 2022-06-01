@@ -36,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = build(paymentId);
 
-        sendEvent(paymentId, stateMachine, PaymentEvent.PRE_AUTH_APPROVED);
+        sendEvent(paymentId, stateMachine, PaymentEvent.PRE_AUTHORIZE);
 
         return stateMachine;
     }
