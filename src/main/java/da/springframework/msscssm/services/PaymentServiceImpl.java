@@ -76,15 +76,15 @@ public class PaymentServiceImpl implements PaymentService {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = stateMachineFactory.getStateMachine(Long.toString(payment.getId()));
 
-        stateMachine.stop();
+        stateMachine.stopReactively().block();
 
         stateMachine.getStateMachineAccessor()
                 .doWithAllRegions(sma -> {
                     sma.addStateMachineInterceptor(paymentStateChangeInterceptor);
-                    sma.resetStateMachine(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null));
+                    sma.resetStateMachineReactively(new DefaultStateMachineContext<>(payment.getPaymentState(), null, null, null)).block();
                 });
 
-        stateMachine.start();
+        stateMachine.startReactively().block();
 
         return stateMachine;
     }
